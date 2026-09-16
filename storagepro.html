@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoragePro - Self-Storage Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="h-full font-sans text-gray-900 antialiased flex flex-col bg-gray-50">
+
+    <div class="min-h-screen flex flex-col md:flex-row relative">
+        
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
+
+        <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 md:w-64 bg-slate-900 text-white flex flex-col shadow-2xl md:shadow-xl z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-5 md:p-6 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-brand-500 p-2.5 rounded-xl text-white shadow-lg shadow-brand-500/30 flex items-center justify-center">
+                        <i data-lucide="package" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-white">StoragePro</h1>
+                        <p class="text-xs text-slate-400">Uncle's Facility Manager</p>
+                    </div>
+                </div>
+                <!-- Close Button for Mobile Drawer -->
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-2">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 bg-brand-600 text-white shadow-md shadow-brand-600/20">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('units')" id="nav-units" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200">
+                    <i data-lucide="grid" class="w-5 h-5"></i>
+                    <span>Units Management</span>
+                </button>
+                <button onclick="switchTab('tenants')" id="nav-tenants" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>Tenant Management</span>
+                </button>
+                <button onclick="switchTab('billing')" id="nav-billing" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200">
+                    <i data-lucide="receipt" class="w-5 h-5"></i>
+                    <span>Billing & Payments</span>
+                </button>
+            </nav>
+
+            <!-- Facility Quick Info Widget -->
+            <div class="p-4 m-4 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-2.5">
+                <div class="flex justify-between text-slate-400">
+                    <span>Facility Code:</span>
+                    <span class="text-white font-semibold">FAC-049</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Gate Status:</span>
+                    <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Online
+                    </span>
+                </div>
+                <button onclick="resetDataModal()" class="w-full mt-2 py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg font-medium transition text-center shadow-sm">
+                    Reset Demo Data
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Top Header -->
+            <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <h2 id="page-title" class="text-lg sm:text-xl font-bold text-gray-800 truncate">Dashboard Overview</h2>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button onclick="openAddUnitModal()" class="inline-flex items-center space-x-1.5 bg-brand-600 hover:bg-brand-700 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span class="hidden xs:inline">Add Unit</span>
+                    </button>
+                    <button onclick="openAddTenantModal()" class="inline-flex items-center space-x-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span class="hidden xs:inline">Add Tenant</span>
+                    </button>
+                    <div class="flex items-center space-x-2 pl-2 sm:pl-3 border-l border-gray-200">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs sm:text-sm shadow-inner">
+                            UP
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div id="tab-dashboard" class="p-4 sm:p-6 space-y-6 max-w-7xl w-full mx-auto tab-content">
+                <!-- Stats Grid (Responsive 2x2 on mobile, 4 col on desktop) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Total Units</p>
+                            <h3 id="stat-total-units" class="text-xl sm:text-2xl font-bold text-gray-900 mt-1">0</h3>
+                            <p class="text-[11px] sm:text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Operational
+                            </p>
+                        </div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-brand-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="box" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Occupancy</p>
+                            <h3 id="stat-occupancy" class="text-xl sm:text-2xl font-bold text-gray-900 mt-1">0%</h3>
+                            <p id="stat-occupancy-sub" class="text-[11px] sm:text-xs text-brand-600 font-medium mt-1">0 occupied</p>
+                        </div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="percent" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Monthly Rev</p>
+                            <h3 id="stat-revenue" class="text-xl sm:text-2xl font-bold text-gray-900 mt-1">$0</h3>
+                            <p class="text-[11px] sm:text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Expected
+                            </p>
+                        </div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="dollar-sign" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Overdue</p>
+                            <h3 id="stat-overdue" class="text-xl sm:text-2xl font-bold text-rose-600 mt-1">0</h3>
+                            <p class="text-[11px] sm:text-xs text-rose-500 font-medium mt-1">Attention req.</p>
+                        </div>
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts and Quick Actions Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Notifications & Alerts -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm sm:text-base font-bold text-gray-800 flex items-center gap-2">
+                                <i data-lucide="bell" class="w-5 h-5 text-brand-600"></i>
+                                Recent Alerts & Activity
+                            </h3>
+                            <span class="text-xs bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full font-medium">Live Feed</span>
+                        </div>
+                        <div id="dashboard-alerts" class="space-y-3">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Widget -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i>
+                                Quick Operations
+                            </h3>
+                            <div class="space-y-3">
+                                <button onclick="openAddUnitModal()" class="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-brand-300 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-brand-100 text-brand-700 rounded-lg group-hover:bg-brand-600 group-hover:text-white transition">
+                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-800">Add New Unit</p>
+                                            <p class="text-xs text-gray-500">Create a compartment</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                                <button onclick="openAddTenantModal()" class="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-brand-300 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition">
+                                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-800">Register Tenant</p>
+                                            <p class="text-xs text-gray-500">Onboard customer</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                                <button onclick="switchTab('billing')" class="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-brand-300 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-indigo-100 text-indigo-700 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition">
+                                            <i data-lucide="receipt" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-800">Process Billing</p>
+                                            <p class="text-xs text-gray-500">Review pending invoices</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+                            <p class="text-[11px] text-gray-400">StoragePro Mobile Edition</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Utilization Bar Card -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                    <h3 class="text-sm sm:text-base font-bold text-gray-800 mb-3">Facility Utilization Overview</h3>
+                    <div id="utilization-bar-container" class="w-full bg-gray-100 h-4 rounded-full overflow-hidden flex shadow-inner">
+                        <!-- Populated via JS -->
+                    </div>
+                    <div id="utilization-legend" class="flex flex-wrap gap-4 sm:gap-6 mt-4 text-xs text-gray-600">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-units" class="p-4 sm:p-6 space-y-6 max-w-7xl w-full mx-auto tab-content hidden">
+                <div class="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="relative w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="unit-search" oninput="renderUnits()" placeholder="Search unit number..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="unit-filter-status" onchange="renderUnits()" class="flex-1 min-w-[130px] bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="All">All Statuses</option>
+                            <option value="Available">Available</option>
+                            <option value="Occupied">Occupied</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                        <select id="unit-filter-size" onchange="renderUnits()" class="flex-1 min-w-[130px] bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="All">All Sizes</option>
+                            <option value="5x10">5x10 ft</option>
+                            <option value="10x10">10x10 ft</option>
+                            <option value="10x20">10x20 ft</option>
+                            <option value="10x30">10x30 ft</option>
+                        </select>
+                        <button onclick="openAddUnitModal()" class="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Add Unit</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Units Grid -->
+                <div id="units-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <div id="tab-tenants" class="p-4 sm:p-6 space-y-6 max-w-7xl w-full mx-auto tab-content hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="tenant-search" oninput="renderTenants()" placeholder="Search tenant name or email..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <button onclick="openAddTenantModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition flex items-center justify-center gap-2">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span>Add Tenant</span>
+                    </button>
+                </div>
+
+                <!-- Tenants List (Desktop Table / Mobile Cards view container) -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/70 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="py-3.5 px-6">Tenant Name</th>
+                                    <th class="py-3.5 px-6">Contact Info</th>
+                                    <th class="py-3.5 px-6">Assigned Unit</th>
+                                    <th class="py-3.5 px-6">Move-In Date</th>
+                                    <th class="py-3.5 px-6">Emergency Contact</th>
+                                    <th class="py-3.5 px-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tenants-table-body" class="divide-y divide-gray-200 text-sm">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Tenant Cards -->
+                    <div id="tenants-mobile-list" class="md:hidden divide-y divide-gray-200">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-billing" class="p-4 sm:p-6 space-y-6 max-w-7xl w-full mx-auto tab-content hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="billing-search" oninput="renderBilling()" placeholder="Search invoice # or tenant..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <select id="billing-filter-status" onchange="renderBilling()" class="bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="All">All Invoices</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <button onclick="openCreateInvoiceModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Create Invoice</span>
+                    </button>
+                </div>
+
+                <!-- Invoices List (Desktop Table / Mobile Cards) -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/70 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="py-3.5 px-6">Invoice ID</th>
+                                    <th class="py-3.5 px-6">Tenant</th>
+                                    <th class="py-3.5 px-6">Unit</th>
+                                    <th class="py-3.5 px-6">Amount</th>
+                                    <th class="py-3.5 px-6">Due Date</th>
+                                    <th class="py-3.5 px-6">Status</th>
+                                    <th class="py-3.5 px-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-table-body" class="divide-y divide-gray-200 text-sm">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Mobile Invoice Cards -->
+                    <div id="billing-mobile-list" class="md:hidden divide-y divide-gray-200">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Unit Modal -->
+    <div id="unit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 id="unit-modal-title" class="text-base sm:text-lg font-bold text-gray-900">Add Storage Unit</h3>
+                <button onclick="closeUnitModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="unit-form" onsubmit="handleUnitSubmit(event)" class="p-5 sm:p-6 space-y-4">
+                <input type="hidden" id="unit-id">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Unit Number / Code</label>
+                    <input type="text" id="unit-number-input" required placeholder="e.g. A-105" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Size Category</label>
+                    <select id="unit-size-input" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="5x10">5x10 ft (Small)</option>
+                        <option value="10x10">10x10 ft (Medium)</option>
+                        <option value="10x20">10x20 ft (Large)</option>
+                        <option value="10x30">10x30 ft (Extra Large)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Monthly Rental Rate ($)</label>
+                    <input type="number" id="unit-price-input" required min="0" step="5" placeholder="120" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Status</label>
+                    <select id="unit-status-input" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Available">Available</option>
+                        <option value="Occupied">Occupied</option>
+                        <option value="Maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeUnitModal()" class="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-sm transition">Save Unit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div id="tenant-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 id="tenant-modal-title" class="text-base sm:text-lg font-bold text-gray-900">Add New Tenant</h3>
+                <button onclick="closeTenantModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="tenant-form" onsubmit="handleTenantSubmit(event)" class="p-5 sm:p-6 space-y-4">
+                <input type="hidden" id="tenant-id">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Full Name</label>
+                    <input type="text" id="tenant-name-input" required placeholder="Johnathan Doe" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Email Address</label>
+                    <input type="email" id="tenant-email-input" required placeholder="john@example.com" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Phone Number</label>
+                    <input type="text" id="tenant-phone-input" required placeholder="(555) 123-4567" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Assign Storage Unit</label>
+                    <select id="tenant-unit-input" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">-- No Unit Assigned --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Emergency Contact</label>
+                    <input type="text" id="tenant-emergency-input" required placeholder="Jane Doe - (555) 987-6543" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeTenantModal()" class="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-sm transition">Save Tenant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div id="invoice-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-base sm:text-lg font-bold text-gray-900">Create New Invoice</h3>
+                <button onclick="closeInvoiceModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="invoice-form" onsubmit="handleInvoiceSubmit(event)" class="p-5 sm:p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Select Tenant</label>
+                    <select id="invoice-tenant-input" required onchange="autofillInvoiceAmount()" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">-- Choose Tenant --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Amount ($)</label>
+                    <input type="number" id="invoice-amount-input" required min="1" step="1" placeholder="150" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Due Date</label>
+                    <input type="date" id="invoice-date-input" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Status</label>
+                    <select id="invoice-status-input" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-sm transition">Generate Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+    <script>
+        // Default Mock Data
+        const defaultUnits = [
+            { id: 'u1', number: 'A-101', size: '5x10', price: 85, status: 'Occupied' },
+            { id: 'u2', number: 'A-102', size: '5x10', price: 85, status: 'Available' },
+            { id: 'u3', number: 'A-103', size: '10x10', price: 140, status: 'Occupied' },
+            { id: 'u4', number: 'A-104', size: '10x10', price: 140, status: 'Maintenance' },
+            { id: 'u5', number: 'B-201', size: '10x20', price: 220, status: 'Occupied' },
+            { id: 'u6', number: 'B-202', size: '10x20', price: 220, status: 'Available' },
+            { id: 'u7', number: 'C-301', size: '10x30', price: 310, status: 'Available' },
+            { id: 'u8', number: 'C-302', size: '10x30', price: 310, status: 'Occupied' }
+        ];
+
+        const defaultTenants = [
+            { id: 't1', name: 'Sarah Jenkins', email: 's.jenkins@gmail.com', phone: '(555) 234-5678', unitId: 'u1', moveInDate: '2025-10-15', emergencyContact: 'Mark Jenkins - (555) 234-9988' },
+            { id: 't2', name: 'Robert Fox', email: 'robert.fox@yahoo.com', phone: '(555) 876-5432', unitId: 'u3', moveInDate: '2025-11-01', emergencyContact: 'Alice Fox - (555) 876-1122' },
+            { id: 't3', name: 'Emily Watson', email: 'emily.w@outlook.com', phone: '(555) 345-6789', unitId: 'u5', moveInDate: '2026-01-10', emergencyContact: 'David Watson - (555) 345-0011' },
+            { id: 't4', name: 'Michael Chang', email: 'mchang@techcorp.io', phone: '(555) 901-2345', unitId: 'u8', moveInDate: '2025-08-20', emergencyContact: 'Grace Chang - (555) 901-4455' }
+        ];
+
+        const defaultInvoices = [
+            { id: 'INV-1001', tenantId: 't1', unitId: 'u1', amount: 85, dueDate: '2026-04-01', status: 'Paid' },
+            { id: 'INV-1002', tenantId: 't2', unitId: 'u3', amount: 140, dueDate: '2026-03-15', status: 'Overdue' },
+            { id: 'INV-1003', tenantId: 't3', unitId: 'u5', amount: 220, dueDate: '2026-04-05', status: 'Pending' },
+            { id: 'INV-1004', tenantId: 't4', unitId: 'u8', amount: 310, dueDate: '2026-03-28', status: 'Overdue' }
+        ];
+
+        const defaultAlerts = [
+            { id: 'a1', type: 'warning', text: 'Invoice INV-1002 for Robert Fox is overdue ($140).', time: '2 hours ago' },
+            { id: 'a2', type: 'info', text: 'Unit A-104 placed under scheduled gate maintenance.', time: 'Yesterday' },
+            { id: 'a3', type: 'success', text: 'Payment received from Sarah Jenkins ($85) for unit A-101.', time: '2 days ago' }
+        ];
+
+        // State variables
+        let units = JSON.parse(localStorage.getItem('storagepro_units')) || defaultUnits;
+        let tenants = JSON.parse(localStorage.getItem('storagepro_tenants')) || defaultTenants;
+        let invoices = JSON.parse(localStorage.getItem('storagepro_invoices')) || defaultInvoices;
+        let alerts = JSON.parse(localStorage.getItem('storagepro_alerts')) || defaultAlerts;
+
+        function saveToLocalStorage() {
+            localStorage.setItem('storagepro_units', JSON.stringify(units));
+            localStorage.setItem('storagepro_tenants', JSON.stringify(tenants));
+            localStorage.setItem('storagepro_invoices', JSON.stringify(invoices));
+            localStorage.setItem('storagepro_alerts', JSON.stringify(alerts));
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+        }
+
+        function initApp() {
+            switchTab('dashboard');
+            document.getElementById('invoice-date-input').valueAsDate = new Date();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Close mobile sidebar if open
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+
+            // Reset navigation styles
+            ['dashboard', 'units', 'tenants', 'billing'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (t === tabName) {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 bg-brand-600 text-white shadow-md shadow-brand-600/20";
+                } else {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200";
+                }
+            });
+
+            const titles = {
+                dashboard: 'Dashboard Overview',
+                units: 'Units Management',
+                tenants: 'Tenant Directory',
+                billing: 'Billing & Invoices'
+            };
+            document.getElementById('page-title').innerText = titles[tabName];
+
+            if (tabName === 'dashboard') renderDashboard();
+            if (tabName === 'units') renderUnits();
+            if (tabName === 'tenants') renderTenants();
+            if (tabName === 'billing') renderBilling();
+
+            lucide.createIcons();
+        }
+
+        // --- DASHBOARD RENDERER ---
+        function renderDashboard() {
+            const totalUnits = units.length;
+            const occupiedUnits = units.filter(u => u.status === 'Occupied').length;
+            const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+            const monthlyRevenue = units.filter(u => u.status === 'Occupied').reduce((sum, u) => sum + Number(u.price), 0);
+            const overdueCount = invoices.filter(i => i.status === 'Overdue').length;
+
+            document.getElementById('stat-total-units').innerText = totalUnits;
+            document.getElementById('stat-occupancy').innerText = `${occupancyRate}%`;
+            document.getElementById('stat-occupancy-sub').innerText = `${occupiedUnits} of ${totalUnits} occupied`;
+            document.getElementById('stat-revenue').innerText = `$${monthlyRevenue.toLocaleString()}`;
+            document.getElementById('stat-overdue').innerText = overdueCount;
+
+            // Utilization Bar
+            const availableCount = units.filter(u => u.status === 'Available').length;
+            const maintenanceCount = units.filter(u => u.status === 'Maintenance').length;
+            
+            const availPct = totalUnits > 0 ? (availableCount / totalUnits) * 100 : 0;
+            const occPct = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+            const maintPct = totalUnits > 0 ? (maintenanceCount / totalUnits) * 100 : 0;
+
+            const barContainer = document.getElementById('utilization-bar-container');
+            barContainer.innerHTML = `
+                <div style="width: ${occPct}%" class="bg-brand-500 h-full transition-all duration-500" title="Occupied: ${occupiedUnits}"></div>
+                <div style="width: ${availPct}%" class="bg-emerald-400 h-full transition-all duration-500" title="Available: ${availableCount}"></div>
+                <div style="width: ${maintPct}%" class="bg-amber-400 h-full transition-all duration-500" title="Maintenance: ${maintenanceCount}"></div>
+            `;
+
+            const legendContainer = document.getElementById('utilization-legend');
+            legendContainer.innerHTML = `
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-brand-500"></span> Occupied (${occupiedUnits})</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Available (${availableCount})</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Maintenance (${maintenanceCount})</div>
+            `;
+
+            // Alerts Feed
+            const alertsEl = document.getElementById('dashboard-alerts');
+            alertsEl.innerHTML = alerts.map(a => `
+                <div class="p-3.5 rounded-xl border border-gray-100 bg-gray-50/50 flex items-start space-x-3">
+                    <div class="mt-0.5">
+                        ${a.type === 'warning' ? '<i data-lucide="alert-circle" class="w-4 h-4 text-rose-500"></i>' : 
+                          a.type === 'success' ? '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>' : 
+                          '<i data-lucide="info" class="w-4 h-4 text-brand-500"></i>'}
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs sm:text-sm text-gray-800 font-medium">${a.text}</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">${a.time}</p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- UNITS MANAGEMENT ---
+        function renderUnits() {
+            const search = document.getElementById('unit-search').value.toLowerCase();
+            const statusFilter = document.getElementById('unit-filter-status').value;
+            const sizeFilter = document.getElementById('unit-filter-size').value;
+
+            const filtered = units.filter(u => {
+                const matchesSearch = u.number.toLowerCase().includes(search);
+                const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
+                const matchesSize = sizeFilter === 'All' || u.size === sizeFilter;
+                return matchesSearch && matchesStatus && matchesSize;
+            });
+
+            const grid = document.getElementById('units-grid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-400 text-sm">No storage units match your filter criteria.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(u => {
+                const tenant = tenants.find(t => t.unitId === u.id);
+                const statusBadge = 
+                    u.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    u.status === 'Occupied' ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                return `
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-base font-bold text-gray-900">${u.number}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge}">${u.status}</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-gray-600 mb-4">
+                                <div class="flex justify-between"><span>Size:</span> <span class="font-medium text-gray-800">${u.size} ft</span></div>
+                                <div class="flex justify-between"><span>Monthly Rate:</span> <span class="font-medium text-gray-800">$${u.price}/mo</span></div>
+                                <div class="flex justify-between"><span>Tenant:</span> <span class="font-medium text-gray-800">${tenant ? tenant.name : 'None'}</span></div>
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+                            <button onclick="editUnit('${u.id}')" class="p-2 text-xs font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
+                            </button>
+                            <button onclick="deleteUnit('${u.id}')" class="p-2 text-xs font-medium text-rose-500 hover:text-rose-600 flex items-center gap-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function openAddUnitModal() {
+            document.getElementById('unit-modal-title').innerText = 'Add Storage Unit';
+            document.getElementById('unit-id').value = '';
+            document.getElementById('unit-number-input').value = '';
+            document.getElementById('unit-size-input').value = '5x10';
+            document.getElementById('unit-price-input').value = '';
+            document.getElementById('unit-status-input').value = 'Available';
+            document.getElementById('unit-modal').classList.remove('hidden');
+        }
+
+        function closeUnitModal() {
+            document.getElementById('unit-modal').classList.add('hidden');
+        }
+
+        function editUnit(id) {
+            const u = units.find(item => item.id === id);
+            if (!u) return;
+            document.getElementById('unit-modal-title').innerText = 'Edit Storage Unit';
+            document.getElementById('unit-id').value = u.id;
+            document.getElementById('unit-number-input').value = u.number;
+            document.getElementById('unit-size-input').value = u.size;
+            document.getElementById('unit-price-input').value = u.price;
+            document.getElementById('unit-status-input').value = u.status;
+            document.getElementById('unit-modal').classList.remove('hidden');
+        }
+
+        function handleUnitSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('unit-id').value;
+            const number = document.getElementById('unit-number-input').value;
+            const size = document.getElementById('unit-size-input').value;
+            const price = Number(document.getElementById('unit-price-input').value);
+            const status = document.getElementById('unit-status-input').value;
+
+            if (id) {
+                const idx = units.findIndex(u => u.id === id);
+                if (idx !== -1) {
+                    units[idx] = { id, number, size, price, status };
+                }
+                showToast(`Unit ${number} updated successfully`, 'success');
+            } else {
+                const newUnit = { id: 'u_' + Date.now(), number, size, price, status };
+                units.push(newUnit);
+                showToast(`Unit ${number} created successfully`, 'success');
+            }
+
+            saveToLocalStorage();
+            closeUnitModal();
+            renderUnits();
+        }
+
+        function deleteUnit(id) {
+            const u = units.find(item => item.id === id);
+            if (u && u.status === 'Occupied') {
+                showToast('Cannot delete an occupied unit. Unassign tenant first.', 'error');
+                return;
+            }
+            units = units.filter(item => item.id !== id);
+            saveToLocalStorage();
+            renderUnits();
+            showToast('Unit deleted successfully', 'success');
+        }
+
+        // --- TENANTS MANAGEMENT ---
+        function renderTenants() {
+            const search = document.getElementById('tenant-search').value.toLowerCase();
+            const filtered = tenants.filter(t => t.name.toLowerCase().includes(search) || t.email.toLowerCase().includes(search));
+
+            const tbody = document.getElementById('tenants-table-body');
+            const mobileList = document.getElementById('tenants-mobile-list');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No tenants found.</td></tr>`;
+                mobileList.innerHTML = `<div class="py-8 text-center text-gray-400 text-sm">No tenants found.</div>`;
+                return;
+            }
+
+            // Desktop Table Rows
+            tbody.innerHTML = filtered.map(t => {
+                const unit = units.find(u => u.id === t.unitId);
+                return `
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="py-4 px-6 font-semibold text-gray-900">${t.name}</td>
+                        <td class="py-4 px-6 text-gray-600">
+                            <div class="text-xs">${t.email}</div>
+                            <div class="text-[11px] text-gray-400">${t.phone}</div>
+                        </td>
+                        <td class="py-4 px-6">
+                            ${unit ? `<span class="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full text-xs font-semibold">${unit.number} (${unit.size})</span>` : '<span class="text-gray-400 text-xs">Unassigned</span>'}
+                        </td>
+                        <td class="py-4 px-6 text-gray-600 text-xs">${t.moveInDate}</td>
+                        <td class="py-4 px-6 text-gray-600 text-xs">${t.emergencyContact}</td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <button onclick="editTenant('${t.id}')" class="px-2 py-1 text-xs font-medium text-brand-600 hover:text-brand-700">Edit</button>
+                            <button onclick="deleteTenant('${t.id}')" class="px-2 py-1 text-xs font-medium text-rose-500 hover:text-rose-600">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Mobile Cards View
+            mobileList.innerHTML = filtered.map(t => {
+                const unit = units.find(u => u.id === t.unitId);
+                return `
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-gray-900 text-base">${t.name}</span>
+                            ${unit ? `<span class="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full text-xs font-semibold">${unit.number}</span>` : '<span class="text-gray-400 text-xs">No Unit</span>'}
+                        </div>
+                        <div class="text-xs text-gray-600 space-y-1">
+                            <div><span class="text-gray-400">Email:</span> ${t.email}</div>
+                            <div><span class="text-gray-400">Phone:</span> ${t.phone}</div>
+                            <div><span class="text-gray-400">Move-In:</span> ${t.moveInDate}</div>
+                            <div><span class="text-gray-400">Emergency:</span> ${t.emergencyContact}</div>
+                        </div>
+                        <div class="pt-2 flex justify-end space-x-3">
+                            <button onclick="editTenant('${t.id}')" class="px-3 py-1.5 text-xs font-medium text-brand-700 bg-brand-50 rounded-lg">Edit</button>
+                            <button onclick="deleteTenant('${t.id}')" class="px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 rounded-lg">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function populateUnitDropdown(selectedUnitId = '') {
+            const select = document.getElementById('tenant-unit-input');
+            const availableUnits = units.filter(u => u.status === 'Available' || u.id === selectedUnitId);
+            select.innerHTML = `<option value="">-- No Unit Assigned --</option>` + availableUnits.map(u => `
+                <option value="${u.id}" ${u.id === selectedUnitId ? 'selected' : ''}>${u.number} (${u.size} - $${u.price}/mo)</option>
+            `).join('');
+        }
+
+        function openAddTenantModal() {
+            document.getElementById('tenant-modal-title').innerText = 'Add New Tenant';
+            document.getElementById('tenant-id').value = '';
+            document.getElementById('tenant-name-input').value = '';
+            document.getElementById('tenant-email-input').value = '';
+            document.getElementById('tenant-phone-input').value = '';
+            document.getElementById('tenant-emergency-input').value = '';
+            populateUnitDropdown();
+            document.getElementById('tenant-modal').classList.remove('hidden');
+        }
+
+        function closeTenantModal() {
+            document.getElementById('tenant-modal').classList.add('hidden');
+        }
+
+        function editTenant(id) {
+            const t = tenants.find(item => item.id === id);
+            if (!t) return;
+            document.getElementById('tenant-modal-title').innerText = 'Edit Tenant Details';
+            document.getElementById('tenant-id').value = t.id;
+            document.getElementById('tenant-name-input').value = t.name;
+            document.getElementById('tenant-email-input').value = t.email;
+            document.getElementById('tenant-phone-input').value = t.phone;
+            document.getElementById('tenant-emergency-input').value = t.emergencyContact;
+            populateUnitDropdown(t.unitId);
+            document.getElementById('tenant-modal').classList.remove('hidden');
+        }
+
+        function handleTenantSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('tenant-id').value;
+            const name = document.getElementById('tenant-name-input').value;
+            const email = document.getElementById('tenant-email-input').value;
+            const phone = document.getElementById('tenant-phone-input').value;
+            const unitId = document.getElementById('tenant-unit-input').value;
+            const emergencyContact = document.getElementById('tenant-emergency-input').value;
+
+            if (id) {
+                const oldTenant = tenants.find(t => t.id === id);
+                if (oldTenant && oldTenant.unitId !== unitId) {
+                    if (oldTenant.unitId) {
+                        const oldU = units.find(u => u.id === oldTenant.unitId);
+                        if (oldU) oldU.status = 'Available';
+                    }
+                    if (unitId) {
+                        const newU = units.find(u => u.id === unitId);
+                        if (newU) newU.status = 'Occupied';
+                    }
+                }
+                const idx = tenants.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    tenants[idx] = { id, name, email, phone, unitId, moveInDate: tenants[idx].moveInDate, emergencyContact };
+                }
+                showToast(`Tenant ${name} updated`, 'success');
+            } else {
+                const newTenantId = 't_' + Date.now();
+                if (unitId) {
+                    const u = units.find(item => item.id === unitId);
+                    if (u) u.status = 'Occupied';
+                }
+                const newTenant = {
+                    id: newTenantId,
+                    name,
+                    email,
+                    phone,
+                    unitId,
+                    moveInDate: new Date().toISOString().split('T')[0],
+                    emergencyContact
+                };
+                tenants.push(newTenant);
+
+                if (unitId) {
+                    const u = units.find(item => item.id === unitId);
+                    if (u) {
+                        invoices.push({
+                            id: 'INV-' + Math.floor(1000 + Math.random() * 9000),
+                            tenantId: newTenantId,
+                            unitId: unitId,
+                            amount: u.price,
+                            dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+                            status: 'Pending'
+                        });
+                    }
+                }
+                showToast(`Tenant ${name} onboarded successfully`, 'success');
+            }
+
+            saveToLocalStorage();
+            closeTenantModal();
+            renderTenants();
+        }
+
+        function deleteTenant(id) {
+            const t = tenants.find(item => item.id === id);
+            if (t && t.unitId) {
+                const u = units.find(item => item.id === t.unitId);
+                if (u) u.status = 'Available';
+            }
+            tenants = tenants.filter(item => item.id !== id);
+            saveToLocalStorage();
+            renderTenants();
+            showToast('Tenant removed successfully', 'success');
+        }
+
+        // --- BILLING & PAYMENTS ---
+        function renderBilling() {
+            const search = document.getElementById('billing-search').value.toLowerCase();
+            const statusFilter = document.getElementById('billing-filter-status').value;
+
+            const filtered = invoices.filter(inv => {
+                const tenant = tenants.find(t => t.id === inv.tenantId);
+                const tenantName = tenant ? tenant.name.toLowerCase() : '';
+                const matchesSearch = inv.id.toLowerCase().includes(search) || tenantName.includes(search);
+                const matchesStatus = statusFilter === 'All' || inv.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            const tbody = document.getElementById('billing-table-body');
+            const mobileList = document.getElementById('billing-mobile-list');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">No invoices found.</td></tr>`;
+                mobileList.innerHTML = `<div class="py-8 text-center text-gray-400 text-sm">No invoices found.</div>`;
+                return;
+            }
+
+            // Desktop Table Rows
+            tbody.innerHTML = filtered.map(inv => {
+                const tenant = tenants.find(t => t.id === inv.tenantId);
+                const unit = units.find(u => u.id === inv.unitId);
+                const statusBadge = 
+                    inv.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    inv.status === 'Overdue' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                return `
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="py-4 px-6 font-semibold text-gray-900">${inv.id}</td>
+                        <td class="py-4 px-6 text-gray-800">${tenant ? tenant.name : 'Unknown Tenant'}</td>
+                        <td class="py-4 px-6 text-gray-600">${unit ? unit.number : 'N/A'}</td>
+                        <td class="py-4 px-6 font-medium text-gray-900">$${inv.amount}</td>
+                        <td class="py-4 px-6 text-gray-600 text-xs">${inv.dueDate}</td>
+                        <td class="py-4 px-6"><span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge}">${inv.status}</span></td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            ${inv.status !== 'Paid' ? `<button onclick="markInvoicePaid('${inv.id}')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg">Mark Paid</button>` : ''}
+                            <button onclick="sendReminder('${inv.id}')" class="text-xs font-medium text-brand-600 hover:text-brand-700">Remind</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Mobile Cards View
+            mobileList.innerHTML = filtered.map(inv => {
+                const tenant = tenants.find(t => t.id === inv.tenantId);
+                const unit = units.find(u => u.id === inv.unitId);
+                const statusBadge = 
+                    inv.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    inv.status === 'Overdue' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                return `
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-gray-900 text-sm">${inv.id}</span>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge}">${inv.status}</span>
+                        </div>
+                        <div class="text-xs text-gray-600 space-y-1">
+                            <div><span class="text-gray-400">Tenant:</span> ${tenant ? tenant.name : 'Unknown'}</div>
+                            <div><span class="text-gray-400">Unit:</span> ${unit ? unit.number : 'N/A'}</div>
+                            <div><span class="text-gray-400">Amount:</span> <span class="font-bold text-gray-900">$${inv.amount}</span></div>
+                            <div><span class="text-gray-400">Due Date:</span> ${inv.dueDate}</div>
+                        </div>
+                        <div class="pt-2 flex justify-end space-x-2">
+                            ${inv.status !== 'Paid' ? `<button onclick="markInvoicePaid('${inv.id}')" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg">Mark Paid</button>` : ''}
+                            <button onclick="sendReminder('${inv.id}')" class="px-3 py-1.5 text-xs font-medium text-brand-700 bg-brand-50 rounded-lg">Remind</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function populateInvoiceTenantDropdown() {
+            const select = document.getElementById('invoice-tenant-input');
+            select.innerHTML = `<option value="">-- Choose Tenant --</option>` + tenants.map(t => `
+                <option value="${t.id}">${t.name} (${t.unitId ? units.find(u=>u.id===t.unitId)?.number || 'No Unit' : 'No Unit'})</option>
+            `).join('');
+        }
+
+        function autofillInvoiceAmount() {
+            const tenantId = document.getElementById('invoice-tenant-input').value;
+            const tenant = tenants.find(t => t.id === tenantId);
+            if (tenant && tenant.unitId) {
+                const unit = units.find(u => u.id === tenant.unitId);
+                if (unit) {
+                    document.getElementById('invoice-amount-input').value = unit.price;
+                }
+            }
+        }
+
+        function openCreateInvoiceModal() {
+            populateInvoiceTenantDropdown();
+            document.getElementById('invoice-amount-input').value = '';
+            document.getElementById('invoice-date-input').valueAsDate = new Date();
+            document.getElementById('invoice-status-input').value = 'Pending';
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+        }
+
+        function handleInvoiceSubmit(e) {
+            e.preventDefault();
+            const tenantId = document.getElementById('invoice-tenant-input').value;
+            const tenant = tenants.find(t => t.id === tenantId);
+            const amount = Number(document.getElementById('invoice-amount-input').value);
+            const dueDate = document.getElementById('invoice-date-input').value;
+            const status = document.getElementById('invoice-status-input').value;
+
+            const newInv = {
+                id: 'INV-' + Math.floor(1000 + Math.random() * 9000),
+                tenantId,
+                unitId: tenant ? tenant.unitId : '',
+                amount,
+                dueDate,
+                status
+            };
+
+            invoices.push(newInv);
+            saveToLocalStorage();
+            closeInvoiceModal();
+            renderBilling();
+            showToast(`Invoice ${newInv.id} created successfully`, 'success');
+        }
+
+        function markInvoicePaid(id) {
+            const inv = invoices.find(i => i.id === id);
+            if (inv) {
+                inv.status = 'Paid';
+                saveToLocalStorage();
+                renderBilling();
+                showToast(`Invoice ${id} marked as Paid`, 'success');
+            }
+        }
+
+        function sendReminder(id) {
+            const inv = invoices.find(i => i.id === id);
+            const tenant = tenants.find(t => t.id === inv?.tenantId);
+            showToast(`Payment reminder sent to ${tenant ? tenant.name : 'Tenant'} via email`, 'success');
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition transform translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-slate-900 text-white border-slate-800' : 'bg-rose-600 text-white border-rose-500'
+            }`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 text-${type === 'success' ? 'emerald-400' : 'white'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function resetDataModal() {
+            if (confirm('Reset all data back to default demo data?')) {
+                units = defaultUnits;
+                tenants = defaultTenants;
+                invoices = defaultInvoices;
+                alerts = defaultAlerts;
+                saveToLocalStorage();
+                switchTab('dashboard');
+                showToast('Demo data restored successfully', 'success');
+            }
+        }
+
+        window.onload = function() {
+            initApp();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
